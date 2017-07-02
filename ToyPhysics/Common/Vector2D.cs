@@ -6,6 +6,10 @@ namespace ToyPhysics
     [StructLayout(LayoutKind.Sequential)]
     public struct Vector2D : IEquatable<Vector2D>, IFormattable
     {
+        public static readonly Vector2D Zero = new Vector2D();
+
+        public static readonly Vector2D One = new Vector2D(1);
+
         public float X, Y;
 
         public float this[int i]
@@ -104,12 +108,9 @@ namespace ToyPhysics
             return a.X != b.X || a.Y != b.Y;
         }
 
-        public static readonly Vector2D Zero = new Vector2D();
-
-        public static readonly Vector2D One = new Vector2D(1);
-
         public static float Dot(Vector2D a, Vector2D b)
         {
+            // 向量点积可表示为 |a| * |b| * cos(theta)。也可理解为相当于将 a 投影到 b 上，并乘以 b 的长度。
             return a.X * b.X + a.Y * b.Y;
         }
 
@@ -126,6 +127,16 @@ namespace ToyPhysics
         public static Vector2D Cross(float s, Vector2D a)
         {
             return new Vector2D(-s * a.Y, s * a.X);
+        }
+
+        public static Vector2D Min(Vector2D a, Vector2D b)
+        {
+            return new Vector2D(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y));
+        }
+
+        public static Vector2D Max(Vector2D a, Vector2D b)
+        {
+            return new Vector2D(Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
         }
 
         public static float Distance(Vector2D a, Vector2D b)

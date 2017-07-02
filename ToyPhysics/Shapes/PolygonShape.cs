@@ -17,12 +17,19 @@ namespace ToyPhysics.Shapes
         private void SetVertices(Vector2D[] vertices)
         {
 #if DEBUG
+            if (vertices == null)
+                throw new ArgumentNullException(nameof(vertices));
+
+            if (vertices.Length < 3)
+                throw new ArgumentOutOfRangeException(nameof(vertices));
+
             // 验证定点是否顺时针方向
             // 验证定点是否为凸包
 #endif
             this.vertices = vertices;
 
-            // 计算法线，并验证没有零长度的边
+            // 计算法线，并验证不存在长度为0的边
+            normals = new Vector2D[vertices.Length];
             for (var i = 0; i < vertices.Length; ++i)
             {
                 int inext = i + 1 < vertices.Length ? i + 1 : 0;
@@ -33,5 +40,9 @@ namespace ToyPhysics.Shapes
                 normals[i] = normal;
             }
         }
+
+        public Vector2D[] Verticles => vertices;
+
+        public Vector2D[] Normals => normals;
     }
 }
