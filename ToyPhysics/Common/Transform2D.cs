@@ -34,5 +34,23 @@ namespace ToyPhysics
         {
             return Q.InverseRotate(point - P);
         }
+
+        public Transform2D Transform(Transform2D transform)
+        {
+            return new Transform2D()
+            {
+                P = P + Q.Rotate(transform.P),
+                Q = Q.Rotate(transform.Q)
+            };
+        }
+
+        public Transform2D InverseTransform(Transform2D transform)
+        {
+            return new Transform2D()
+            {
+                P = Q.InverseRotate(transform.P - P),
+                Q = Q.InverseRotate(transform.Q),
+            };
+        }
     }
 }

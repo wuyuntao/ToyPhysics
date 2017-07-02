@@ -1,10 +1,11 @@
-﻿using ToyPhysics.Shapes;
+﻿using System;
+using ToyPhysics.Shapes;
 
 namespace ToyPhysics.Collision
 {
     static class Collision
     {
-        public static bool Collide(out CollisionManifold manifold,
+        public static bool Collide(out ContactManifold manifold,
             CircleShape circle1, Transform2D transform1,
             CircleShape circle2, Transform2D transform2)
         {
@@ -19,17 +20,17 @@ namespace ToyPhysics.Collision
                 return false;
             }
 
-            manifold = new CollisionManifold()
+            manifold = new ContactManifold()
             {
                 LocalPoint = circle1.Center,
                 LocalNormal = Vector2D.Zero,        // 为什么圆和圆的法线为 0 向量？
-                Points = new[] { new CollisionManifold.ContactPoint() { LocalPoint = circle2.Center }
+                Points = new[] { new ContactPoint() { LocalPoint = circle2.Center }
                 },
             };
             return true;
         }
 
-        public static bool Collide(out CollisionManifold manifold,
+        public static bool Collide(out ContactManifold manifold,
             PolygonShape polygon1, Transform2D transform1,
             CircleShape circle2, Transform2D transform2)
         {
@@ -65,11 +66,11 @@ namespace ToyPhysics.Collision
             // 如果圆心在多边形内部
             if (seperation < float.Epsilon)
             {
-                manifold = new CollisionManifold()
+                manifold = new ContactManifold()
                 {
                     LocalPoint = (v1 + v2) * 0.5f,
                     LocalNormal = polygon1.Normals[normalIndex],
-                    Points = new[] { new CollisionManifold.ContactPoint() { LocalPoint = circle2.Center } }
+                    Points = new[] { new ContactPoint() { LocalPoint = circle2.Center } }
                 };
                 return true;
             }
@@ -84,11 +85,11 @@ namespace ToyPhysics.Collision
                     return false;
                 }
 
-                manifold = new CollisionManifold()
+                manifold = new ContactManifold()
                 {
                     LocalPoint = v1,
                     LocalNormal = c - v1,
-                    Points = new[] { new CollisionManifold.ContactPoint() { LocalPoint = circle2.Center } }
+                    Points = new[] { new ContactPoint() { LocalPoint = circle2.Center } }
                 };
                 manifold.LocalNormal.Normalize();
                 return true;
@@ -104,11 +105,11 @@ namespace ToyPhysics.Collision
                     return false;
                 }
 
-                manifold = new CollisionManifold()
+                manifold = new ContactManifold()
                 {
                     LocalPoint = v2,
                     LocalNormal = c - v2,
-                    Points = new[] { new CollisionManifold.ContactPoint() { LocalPoint = circle2.Center } }
+                    Points = new[] { new ContactPoint() { LocalPoint = circle2.Center } }
                 };
                 manifold.LocalNormal.Normalize();
                 return true;
@@ -124,14 +125,71 @@ namespace ToyPhysics.Collision
                     return false;
                 }
 
-                manifold = new CollisionManifold()
+                manifold = new ContactManifold()
                 {
                     LocalPoint = faceCenter,
                     LocalNormal = polygon1.Normals[normalIndex],
-                    Points = new[] { new CollisionManifold.ContactPoint() { LocalPoint = circle2.Center } }
+                    Points = new[] { new ContactPoint() { LocalPoint = circle2.Center } }
                 };
                 return true;
             }
+        }
+
+        public static bool Collide(out ContactManifold manifold,
+            PolygonShape polygon1, Transform2D transform1,
+            PolygonShape polygon2, Transform2D transform2)
+        {
+            var radius = Configuration.PolygonRadius * 2;
+
+            var seperation1 = FindMaxSeperation(out int edge1, polygon1, transform1, polygon2, transform2);
+            if (seperation1 > radius)
+            {
+                manifold = null;
+                return false;
+            }
+
+            var seperation2 = FindMaxSeperation(out int edge2, polygon2, transform2, polygon1, transform1);
+            if (seperation2 > radius)
+            {
+                manifold = null;
+                return false;
+            }
+
+            throw new NotImplementedException();
+        }
+
+        private static float FindMaxSeperation(out int edgeIndex, PolygonShape polygon1, Transform2D transform1, PolygonShape polygon2, Transform2D transform2)
+        {
+            // 找到 polygon2 在 polygon1 的各个法线上投影最大的顶点
+            // 如果投影 > 0 表示在该法线投影上，两个 polygon 没有相交
+            // 根据分离轴的算法，即两个 polygon 没有相交
+            var transform = transform1.Transform(transform2);
+
+            edgeIndex = -1;
+            var maxSeperation = float.MinValue;
+            for (int i = 0; i < polygon1.Normals.Length; ++i)
+            {
+                // 将 polygon1 的本地坐标系转换到 polygon2 的本地坐标系
+                var v1 = transform.Transform(polygon1.Verticles[i]);
+                var n1 = transform.Transform(polygon1.Normals[i]);
+
+                // 计算 polygon2 顶点在 normal 上投影最深的点
+                var si = float.MaxValue;
+                for (int j = 0; j < polygon2.Verticles.Length; ++j)
+                {
+                    var sij = Vector2D.Dot(polygon2.Verticles[j] - v1, n1);
+                    if (sij < si)
+                        si = sij;
+                }
+
+                if (si > maxSeperation)
+                {
+                    maxSeperation = si;
+                    edgeIndex = i;
+                }
+            }
+
+            return maxSeperation;
         }
     }
 }
