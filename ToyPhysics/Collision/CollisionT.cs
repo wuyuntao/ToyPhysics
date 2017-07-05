@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using ToyPhysics.Shapes;
 
 namespace ToyPhysics.Collision
 {
-    static class Collision
+    static class CollisionT
     {
         public static bool Collide(out ContactManifold manifold,
             CircleShape circle1, Transform2D transform1,
@@ -155,10 +156,25 @@ namespace ToyPhysics.Collision
                 return false;
             }
 
+            var flip = 0;
+            var tol = 0.1f * Configuration.LinearSlop;
+
+            if (seperation2 > seperation1 + tol)
+            {
+                MathT.Swap(ref polygon1, ref polygon2);
+                MathT.Swap(ref transform1, ref transform2);
+                MathT.Swap(ref edge1, ref edge2);
+                flip = 1;
+            }
+
+            var incidentEdge = FindIncidentEdge(polygon1, transform1, edge1, polygon2, transform2);
+
             throw new NotImplementedException();
         }
 
-        private static float FindMaxSeperation(out int edgeIndex, PolygonShape polygon1, Transform2D transform1, PolygonShape polygon2, Transform2D transform2)
+        private static float FindMaxSeperation(out int edgeIndex,
+            PolygonShape polygon1, Transform2D transform1,
+            PolygonShape polygon2, Transform2D transform2)
         {
             // 找到 polygon2 在 polygon1 的各个法线上投影最大的顶点
             // 如果投影 > 0 表示在该法线投影上，两个 polygon 没有相交
@@ -190,6 +206,36 @@ namespace ToyPhysics.Collision
             }
 
             return maxSeperation;
+        }
+
+        private static Vector2D[] FindIncidentEdge(
+            PolygonShape polygon1, Transform2D transform1, int edge1,
+            PolygonShape polygon2, Transform2D transform2)
+        {
+            Debug.Assert(0 <= edge1 && edge1 < polygon1.Normals.Length);
+
+            // 将 polygon1 的本地坐标系转换到 polygon2 的本地坐标系
+            var normal1 = transform2.Q.InverseRotate(transform1.Q.Rotate(polygon1.Normals[edge1]));
+
+            // 找到和法线最垂直的边索引，即入射边
+            var minS = float.MaxValue;
+            var sIndex = 0;
+            for (int i = 0; i < polygon2.Normals.Length; ++i)
+            {
+                var s = Vector2D.Dot(normal1, polygon2.Normals[i]);
+                if (s < minS)
+                {
+                    minS = s;
+                    sIndex = i;
+                }
+            }
+
+            var sIndexNext = sIndex + 1 < polygon2.Verticles.Length ? sIndex + 1 : 0;
+            var incidentEdge = new Vector2D[2];
+            incidentEdge[0] = transform2.Transform(polygon1.Verticles[sIndex]);
+            incidentEdge[1] = transform2.Transform(polygon1.Verticles[sIndexNext]);
+
+            return incidentEdge;
         }
     }
 }
