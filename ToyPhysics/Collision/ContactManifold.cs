@@ -10,6 +10,5 @@
         public Vector2D LocalPoint;
         public Vector2D LocalNormal;
         public ContactPoint[] Points;
-
     }
 }
