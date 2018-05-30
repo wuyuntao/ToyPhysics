@@ -98,6 +98,16 @@ namespace ToyPhysics
             return new Vector2D(v1.X * a, v1.Y * a);
         }
 
+        public static Vector2D operator /(Vector2D v1, float a)
+        {
+            return new Vector2D(v1.X / a, v1.Y / a);
+        }
+
+        public static Vector2D operator /(float a, Vector2D v1)
+        {
+            return new Vector2D(v1.X / a, v1.Y / a);
+        }
+
         public static bool operator ==(Vector2D a, Vector2D b)
         {
             return a.X == b.X && a.Y == b.Y;

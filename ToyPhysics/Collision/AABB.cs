@@ -1,6 +1,6 @@
 ﻿namespace ToyPhysics.Collision
 {
-    struct AABB
+    public struct AABB
     {
         public Vector2D LowerBound, UpperBound;
 
@@ -33,9 +33,9 @@
 
         public bool Contains(AABB aabb)
         {
-            return LowerBound.X <= aabb.LowerBound.X && 
-                LowerBound.Y <= aabb.LowerBound.Y && 
-                aabb.UpperBound.X <= UpperBound.X && 
+            return LowerBound.X <= aabb.LowerBound.X &&
+                LowerBound.Y <= aabb.LowerBound.Y &&
+                aabb.UpperBound.X <= UpperBound.X &&
                 aabb.UpperBound.Y <= UpperBound.Y;
         }
     }
