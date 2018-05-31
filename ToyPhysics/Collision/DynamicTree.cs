@@ -32,7 +32,9 @@ namespace ToyPhysics.Collision
 
         internal bool IsLeaf => LeftChild == null;
 
-        internal bool IsFree => Depth < 0;
+		internal bool IsRoot => Parent == null;
+
+		internal bool IsFree => Depth < 0;
     }
 
     public class DynamicTree
@@ -95,8 +97,8 @@ namespace ToyPhysics.Collision
             return true;
         }
 
-        public void Query(Func<DynamicTreeNode, bool> callback, AABB aabb)
-        {
+        public void Overlap(AABB aabb, Func<DynamicTreeNode, bool> callback)
+		{
             queryStack.Clear();
             queryStack.Push(root);
 
@@ -110,7 +112,7 @@ namespace ToyPhysics.Collision
                 {
                     if (node.IsLeaf)
                     {
-                        if (callback(node) == false)
+                        if (!callback(node))
                             return;
                     }
                     else
@@ -129,8 +131,8 @@ namespace ToyPhysics.Collision
             public float MaxFraction;
         }
 
-        public void RayCast(Func<RayCastInput, DynamicTreeNode, float> callback, RayCastInput input)
-        {
+        public void RayCast(RayCastInput input, Func<RayCastInput, DynamicTreeNode, float> callback)
+		{
             var p1 = input.Point1;
             var p2 = input.Point2;
             var r = p2 - p1;
@@ -315,12 +317,14 @@ namespace ToyPhysics.Collision
             var aabb = leaf.AABB.Combine(child.AABB);
             if (child.IsLeaf)
                 return aabb.Perimeter + inheritanceCost;
-
-            return (aabb.Perimeter - child.AABB.Perimeter) + inheritanceCost;
+			else
+				return (aabb.Perimeter - child.AABB.Perimeter) + inheritanceCost;
         }
 
         private void RemoveLeaf(DynamicTreeNode leaf)
         {
+			Debug.Assert( leaf.IsLeaf );
+
             if (leaf == root)
             {
                 root = null;
@@ -365,7 +369,7 @@ namespace ToyPhysics.Collision
                 Debug.Assert(node.LeftChild != null);
                 Debug.Assert(node.RightChild != null);
 
-                node.Depth = 1 + Math.Max((int)node.LeftChild.Depth, (int)node.RightChild.Depth);
+                node.Depth = 1 + Math.Max( node.LeftChild.Depth, node.RightChild.Depth );
                 node.AABB = node.LeftChild.AABB.Combine(node.RightChild.AABB);
 
                 node = node.Parent;
@@ -626,7 +630,9 @@ namespace ToyPhysics.Collision
 
         public int Count => count;
 
-        public int Depth => root != null ? root.Depth : 0;
+		public int FreeCount => freeNodes.Count;
+
+		public int Depth => root != null ? root.Depth : 0;
 
         public float AreaRatio
         {
