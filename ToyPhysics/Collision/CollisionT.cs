@@ -4,7 +4,7 @@ using ToyPhysics.Shapes;
 
 namespace ToyPhysics.Collision
 {
-    static class CollisionT
+    public static class CollisionT
     {
         public static bool Collide(out ContactManifold manifold,
             CircleShape circle1, Transform2D transform1,

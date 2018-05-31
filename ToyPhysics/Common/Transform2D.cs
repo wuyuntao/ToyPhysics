@@ -8,7 +8,7 @@ namespace ToyPhysics
         public Vector2D P;
         public Rotation2D Q;
 
-        public Transform2D(ref Vector2D position, ref Rotation2D rotation)
+        public Transform2D(Vector2D position, Rotation2D rotation)
         {
             P = position;
             Q = rotation;
