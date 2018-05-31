@@ -32,9 +32,9 @@ namespace ToyPhysics.Collision
 
         internal bool IsLeaf => LeftChild == null;
 
-		internal bool IsRoot => Parent == null;
+        internal bool IsRoot => Parent == null;
 
-		internal bool IsFree => Depth < 0;
+        internal bool IsFree => Depth < 0;
     }
 
     public class DynamicTree
@@ -98,7 +98,7 @@ namespace ToyPhysics.Collision
         }
 
         public void Overlap(AABB aabb, Func<DynamicTreeNode, bool> callback)
-		{
+        {
             queryStack.Clear();
             queryStack.Push(root);
 
@@ -132,7 +132,7 @@ namespace ToyPhysics.Collision
         }
 
         public void RayCast(RayCastInput input, Func<RayCastInput, DynamicTreeNode, float> callback)
-		{
+        {
             var p1 = input.Point1;
             var p2 = input.Point2;
             var r = p2 - p1;
@@ -317,13 +317,13 @@ namespace ToyPhysics.Collision
             var aabb = leaf.AABB.Combine(child.AABB);
             if (child.IsLeaf)
                 return aabb.Perimeter + inheritanceCost;
-			else
-				return (aabb.Perimeter - child.AABB.Perimeter) + inheritanceCost;
+            else
+                return (aabb.Perimeter - child.AABB.Perimeter) + inheritanceCost;
         }
 
         private void RemoveLeaf(DynamicTreeNode leaf)
         {
-			Debug.Assert( leaf.IsLeaf );
+            Debug.Assert(leaf.IsLeaf);
 
             if (leaf == root)
             {
@@ -369,7 +369,7 @@ namespace ToyPhysics.Collision
                 Debug.Assert(node.LeftChild != null);
                 Debug.Assert(node.RightChild != null);
 
-                node.Depth = 1 + Math.Max( node.LeftChild.Depth, node.RightChild.Depth );
+                node.Depth = 1 + Math.Max(node.LeftChild.Depth, node.RightChild.Depth);
                 node.AABB = node.LeftChild.AABB.Combine(node.RightChild.AABB);
 
                 node = node.Parent;
@@ -434,7 +434,10 @@ namespace ToyPhysics.Collision
             if (grandChild1.Depth > grandChild2.Depth)
             {
                 child1.RightChild = grandChild1;
-                parent.RightChild = grandChild2;
+                if (leftChild)
+                    parent.LeftChild = grandChild2;
+                else
+                    parent.RightChild = grandChild2;
                 grandChild2.Parent = parent;
                 parent.AABB = child2.AABB.Combine(grandChild2.AABB);
                 child1.AABB = parent.AABB.Combine(grandChild1.AABB);
@@ -445,7 +448,10 @@ namespace ToyPhysics.Collision
             else
             {
                 child1.RightChild = grandChild2;
-                parent.RightChild = grandChild1;
+                if (leftChild)
+                    parent.LeftChild = grandChild1;
+                else
+                    parent.RightChild = grandChild1;
                 grandChild1.Parent = parent;
                 parent.AABB = child2.AABB.Combine(grandChild1.AABB);
                 child1.AABB = parent.AABB.Combine(grandChild2.AABB);
@@ -630,9 +636,9 @@ namespace ToyPhysics.Collision
 
         public int Count => count;
 
-		public int FreeCount => freeNodes.Count;
+        public int FreeCount => freeNodes.Count;
 
-		public int Depth => root != null ? root.Depth : 0;
+        public int Depth => root != null ? root.Depth : 0;
 
         public float AreaRatio
         {
